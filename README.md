@@ -16,7 +16,7 @@
 5. [📥 Ingestion Design (Batch & Streaming)](#-ingestion-design-batch--streaming)
 6. [🧱 Data Modeling (Bronze → Silver → Gold)](#-data-modeling-bronze--silver--gold)
 7. [🔗 Graph Data Modeling Layer](#-graph-data-modeling-layer)
-8. [📊 KPIs & Gold Layer Examples](#-kpis--gold-layer-examples)
+8. [📊 Exatraction](#-extraction)
 9. [🔐 Governance, Metadata & Security](#-governance-metadata--security)
 10. [🚀 CI/CD & Deployment](#-cicd--deployment)
 11. [🧪 Testing & Observability](#-testing--observability)
@@ -132,7 +132,7 @@ metadata/
 
 ---
 
-## 📊 KPIs & Gold Layer
+## 📊 Extraction
 
 | KPI Name              | Description                                          |
 | --------------------- | ---------------------------------------------------- |
@@ -144,7 +144,8 @@ metadata/
 | RevenueForecast       | Earnings forecast based on net interest spread       |
 | BranchEfficiencyScore | Composite KPI combining SLA, loan size, and risk     |
 
-
+- Dashborad with Seaborn
+- Fast API Call for application
 
 
 ---
