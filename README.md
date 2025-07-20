@@ -1,4 +1,4 @@
-# 🏠 HomeLoanIQ – Banking Intelligence Platform for Home Loan Analytics
+# 🏠 HomeLoanIQ –  Loan Approval and Risk Monitoring with Customer Influence
 
 **HomeLoanIQ** is a modular, metadata-driven data platform purpose-built for analyzing and optimizing the **home loan lifecycle** across large financial institutions. It supports **real-time + batch ingestion**, **graph-modeled customer insights**, **KPI-driven SQL transformations**, and **enterprise-grade data governance**.
 
