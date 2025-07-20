@@ -1,9 +1,3 @@
-Here’s a Grade A README tailored for your `src/extraction/` directory, covering Tableau views and application APIs extraction logic for the HomeLoanIQ platform:
-
----
-
-````markdown
-# 📤 `src/extraction/` – Data Serving & API Extraction Layer
 
 This directory contains extraction artifacts that deliver **business-ready datasets** to downstream consumers, including **Tableau dashboards** and **application APIs**. It ensures performant, secure, and governed data delivery for HomeLoanIQ’s end-user insights and operational applications.
 
