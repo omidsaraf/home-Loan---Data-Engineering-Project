@@ -2,7 +2,8 @@
 
 **HomeLoanIQ** is a scalable, metadata-driven data platform designed to analyze and optimize the **home loan lifecycle** within large financial institutions. It supports **real-time and batch ingestion**, leverages **graph-based customer influence modeling**, provides **KPI-driven modular SQL transformations**, and enforces **enterprise-grade data governance** and security.
 
-<img width="673" height="609" alt="image" src="https://github.com/user-attachments/assets/f56b1158-cb93-4b40-b9ce-f50a10b59810" />
+<img width="1006" height="424" alt="image" src="https://github.com/user-attachments/assets/f301b823-71ff-4356-aae2-9a76aba30ddc" />
+
 
 ---
 
