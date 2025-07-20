@@ -1,7 +1,6 @@
-
 ### **1. ADF\_Metadata Table (For Batch Processing)**
 
-Here we log metadata for **ADF pipeline executions** related to batch processing. These will capture pipeline status, parameters, and run timestamps.
+This table logs metadata for **ADF pipeline executions** related to batch processing. It captures pipeline status, parameters, and run timestamps, providing full traceability for batch processes managed by Azure Data Factory.
 
 #### Sample Entries:
 
@@ -10,17 +9,11 @@ Here we log metadata for **ADF pipeline executions** related to batch processing
 | 1                | Loan\_Application\_ETL | CRM                | Daily         | 2023-08-01 00:00:00 | 2023-08-01 00:30:00 | Completed  | Success               | {"start\_date": "2023-08-01", "end\_date": "2023-08-01"} | 2023-08-01 00:00:00 | 2023-08-01 00:30:00 |
 | 2                | Loan\_Approval\_Batch  | Core Banking       | Weekly        | 2023-08-01 01:00:00 | 2023-08-01 01:45:00 | Completed  | Success               | {"batch\_size": "500", "process\_type": "Incremental"}   | 2023-08-01 01:00:00 | 2023-08-01 01:45:00 |
 
-
-| **job\_id** | **job\_name**                  | **job\_type** | **status** | **start\_time**     | **end\_time**       | **duration** | **error\_message** | **streaming\_source** | **micro\_batch\_id** |
-| ----------- | ------------------------------ | ------------- | ---------- | ------------------- | ------------------- | ------------ | ------------------ | --------------------- | -------------------- |
-| 1           | Loan\_Application\_Stream\_Job | Streaming     | Completed  | 2023-08-01 00:00:00 | 2023-08-01 01:00:00 | 1 hour       | NULL               | Kafka                 | batch\_12345         |
-| 2           | Loan\_Approval\_Batch\_Job     | Batch         | Completed  | 2023-08-01 00:00:00 | 2023-08-01 00:45:00 | 45 minutes   | NULL               | NULL                  | NULL                 |
-
 ---
 
 ### **2. Airflow\_Metadata Table (For Batch Processing)**
 
-Airflow metadata will capture DAG execution details for batch jobs, including the status of tasks in the DAG.
+This table stores metadata for **Airflow DAG executions** related to batch jobs, tracking task details such as status, parameters, and task execution timestamps.
 
 #### Sample Entries:
 
@@ -34,7 +27,7 @@ Airflow metadata will capture DAG execution details for batch jobs, including th
 
 ### **3. Batch\_Metadata Table (For Batch Processing)**
 
-Batch jobs like loan disbursement and risk model calculations are logged here.
+This table captures metadata related to **batch jobs** such as loan disbursements, risk model calculations, etc.
 
 #### Sample Entries:
 
@@ -47,7 +40,7 @@ Batch jobs like loan disbursement and risk model calculations are logged here.
 
 ### **4. Streaming\_Metadata Table (For Spark Streaming)**
 
-This table will store metadata for **Spark Structured Streaming** jobs. These are typically used for real-time data streaming.
+Tracks metadata for **Spark Structured Streaming** jobs, used for real-time data streaming. This includes job status, start/end times, and parameters for each stream.
 
 #### Sample Entries:
 
@@ -60,7 +53,7 @@ This table will store metadata for **Spark Structured Streaming** jobs. These ar
 
 ### **5. Job\_Metadata Table (For Batch and Streaming Jobs)**
 
-Captures metadata for all **job executions**, whether batch or streaming.
+Captures metadata for all **job executions**, whether batch or streaming, tracking job names, frequency, status, and timestamps.
 
 #### Sample Entries:
 
@@ -74,21 +67,24 @@ Captures metadata for all **job executions**, whether batch or streaming.
 
 ### **6. Process\_Metadata Table (For Batch and Streaming Processes)**
 
-Captures metadata for the **individual processes** within each job.
+Captures metadata for the **individual processes** within each job. This ensures traceability for data transformations or model evaluations within a job.
 
 #### Sample Entries:
 
-| **process\_id** | **process\_name** | **status** | **start\_time**     | **end\_time**       | **execution\_time** | **job\_id** | **created\_at**     | **updated\_at**     |
-| --------------- | ----------------- | ---------- | ------------------- | ------------------- | ------------------- | ----------- | ------------------- | ------------------- |
-| 1               | Data\_Cleansing   | Completed  | 2023-08-01 00:05:00 | 2023-08-01 00:15:00 | 10 minutes          | 1           | 2023-08-01 00:05:00 | 2023-08-01 00:15:00 |
-| 2               | Risk\_Assessment  | Failed     | 2023-08-01 00:15:00    | 2023-08-01 00:30:00    | 15 minutes         | 1         | 2023-08-01 00:15:00   | 2023-08-01 00:30:00   |
-| 3               | Loan\_Approval\_Evaluation    | Completed  | 2023-08-01 00:30:00    | 2023-08-01 00:45:00    | 15 minutes         | 1         | 2023-08-01 00:30:00   | 2023-08-01 00:45:00   |
+| **process\_id** | **process\_name**          | **status** | **start\_time**     | **end\_time**       | **execution\_time** | **job\_id** | **created\_at**     | **updated\_at**     |
+| --------------- | -------------------------- | ---------- | ------------------- | ------------------- | ------------------- | ----------- | ------------------- | ------------------- |
+| 1               | Data\_Cleansing            | Completed  | 2023-08-01 00:05:00 | 2023-08-01 00:15:00 | 10 minutes          | 1           | 2023-08-01 00:05:00 | 2023-08-01 00:15:00 |
+| 2               | Risk\_Assessment           | Failed     | 2023-08-01 00:15:00 | 2023-08-01 00:30:00 | 15 minutes          | 1           | 2023-08-01 00:15:00 | 2023-08-01 00:30:00 |
+| 3               | Loan\_Approval\_Evaluation |            |                     |                     |                     |             |                     |                     |
+
+
+Completed  | 2023-08-01 00:30:00 | 2023-08-01 00:45:00 | 15 minutes         | 1           | 2023-08-01 00:30:00 | 2023-08-01 00:45:00 |
 
 ---
 
 ### **7. Process\_Parameter\_Metadata Table (For Batch and Streaming Process Parameters)**
 
-Captures parameters used in each process.
+Captures parameters used in each process, allowing for detailed tracking of variables involved in data processing.
 
 #### Sample Entries:
 
@@ -103,7 +99,7 @@ Captures parameters used in each process.
 
 ### **8. Metadata\_Logs Table**
 
-Captures any **changes or updates** made to metadata entries for auditing purposes.
+Captures any **changes or updates** made to metadata entries for auditing purposes, including who made the changes and when.
 
 #### Sample Entries:
 
@@ -114,3 +110,4 @@ Captures any **changes or updates** made to metadata entries for auditing purpos
 
 ---
 
+This revised metadata design ensures a robust, transparent, and traceable approach for **batch** and **streaming** jobs. It aligns with best practices for **data governance**, **auditability**, and **job tracking** across **ADF**, **Airflow**, and **Spark Structured Streaming** pipelines.
