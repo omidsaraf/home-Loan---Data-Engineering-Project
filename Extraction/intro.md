@@ -1,5 +1,7 @@
 
-This directory contains extraction artifacts that deliver **business-ready datasets** to downstream consumers, including **Tableau dashboards** and **application APIs**. It ensures performant, secure, and governed data delivery for HomeLoanIQ’s end-user insights and operational applications.
+## 📦 Final Delivery Layer for Business Consumption
+
+This directory contains **modular, production-ready artifacts** that deliver curated and enriched datasets from the Gold layer to downstream consumers. These include **interactive Python dashboards**, **data APIs**, and **business-aligned reporting views**. It ensures **fast, secure, and governed access** to insights across the HomeLoanIQ platform.
 
 ---
 
@@ -8,66 +10,83 @@ This directory contains extraction artifacts that deliver **business-ready datas
 ```plaintext
 src/
 └── extraction/
-    ├── Dashboard/        # SQL views optimized for dashboards
-    └── application_apis/     # Python & API code serving data to applications
-````
+    ├── dashboard_views/      # SQL views optimized for interactive Python/BI dashboards
+    └── application_apis/     # Python APIs delivering curated Gold data to external apps
+```
 
 ---
 
-## 📊 `Dashboard` – BI-Optimized SQL Views
+## 📊 `dashboard_views/` – BI-Optimized & Parameterized SQL Views
 
-* Houses modular, well-documented SQL views tailored for **Tableau direct querying**.
-* Views follow **best practices**:
+These SQL views serve as **semantic-ready layers** for data analysts, data scientists, and dashboard developers.
 
-  * Use of aggregate tables and materialized views where applicable for speed.
-  * Pre-calculated KPIs, rolling aggregates, and filtered partitions.
-  * Clear naming conventions (`tbl_` prefix).
-  * Built with **parameterized logic** where possible for flexibility.
-* Maintains **data governance** by adhering to Unity Catalog permissions and masking sensitive fields.
-* Enables analysts to create responsive and accurate dashboards without heavy transformation logic.
+### ✅ Key Features:
+
+* **KPI-ready** Delta SQL views: Includes pre-aggregated metrics like approval rates, default trends, top influencers.
+* **Parameterized logic**: Views adapt to filters like region, product type, or date range using session variables or passthrough config.
+* **Performance-optimized**:
+
+  * Leverages **Gold-layer materialized tables**
+  * Partitioning by `processing_date` and customer segments
+  * Uses **summary tables** for fast loading
+* **Governed** via Unity Catalog:
+
+  * PII masking
+  * View-specific ACLs based on consumer roles
+
+### 📘 Example Views:
+
+| View Name                    | Description                                 |
+| ---------------------------- | ------------------------------------------- |
+| `vw_dashboard_kpi_summary`   | Daily approval and default rate KPIs        |
+| `vw_influence_top_customers` | Top 100 customers by influence score        |
+| `vw_monthly_volume_metrics`  | Monthly loan volume and default counts      |
+| `vw_graph_metrics`           | Precomputed graph centralities and clusters |
 
 ---
 
-## 🚀 `application_apis/` – Data Serving APIs
+## 🚀 `application_apis/` – Secure Python APIs for Embedded Consumption
 
-* Contains Python-based extraction logic powering RESTful APIs for:
+This module provides **RESTful Python APIs** built using **FastAPI** or **Flask**, deployed on Azure Kubernetes Services or Azure Functions. They expose business data for use in apps like:
 
-  * Salesforce integrations
-  * Internal banking applications
-  * Reporting portals
-* Implements:
+* Customer onboarding UIs
+* Salesforce enrichment tools
+* Internal risk & fraud monitoring tools
 
-  * **Authentication & authorization** via OAuth2 or Azure AD tokens
-  * **Pagination, filtering, and sorting** on large datasets
-  * **Caching strategies** to reduce latency
-  * Error handling and logging with observability integrations
-* Ensures **data security** with PII masking and role-based access controls (RBAC) integrated with Unity Catalog and Azure Key Vault.
+### 🔐 Security Features:
+
+* OAuth2 and Azure AD authentication with token validation
+* Role-based access control (RBAC) tied to Unity Catalog
+* PII masking and logging of access attempts via Azure Monitor
+
+### 🧠 Key Capabilities:
+
+| Feature       | Description                                         |
+| ------------- | --------------------------------------------------- |
+| Pagination    | Efficient scroll and slicing of large result sets   |
+| Filtering     | On fields like date range, region, loan type        |
+| Caching       | API-level caching with TTL and freshness checks     |
+| Observability | Logging, tracing, and alerting integrated via Azure |
 
 ---
 
 ## 🛠️ Development Best Practices
 
-| Practice                 | Description                                     |
-| ------------------------ | ----------------------------------------------- |
-| Modular SQL & API Design | Small, reusable components and functions        |
-| Documentation            | Inline code docs and README.md for APIs & views |
-| Version Control          | Use Git with branching and pull requests        |
-| Testing                  | Unit and integration tests for API endpoints    |
-| Performance Optimization | Indexing, query tuning, and API caching         |
-| Security & Compliance    | Encrypt sensitive data, audit API usage         |
+| Focus              | Implementation Highlights                                 |
+| ------------------ | --------------------------------------------------------- |
+| **Modular Design** | SQL views split by KPI domain; APIs split by service path |
+| **Testing**        | Unit tests for SQL logic and FastAPI test clients         |
+| **CI/CD**          | Automated deployments using GitHub Actions                |
+| **Performance**    | Delta caching, partitioned queries, query hints           |
+| **Documentation**  | YAML data contracts, OpenAPI specs for APIs               |
+| **Compliance**     | GDPR masking, encrypted secrets via Key Vault             |
 
 ---
 
 ## 🔗 Integration Points
 
-* Tableau connects directly to **Gold-layer views** in Delta Lake via Unity Catalog
-* APIs serve data pulled from Gold-layer aggregates and entity resolution outputs
-* Both pipelines are triggered and monitored via Airflow workflows and metadata orchestration
+* **Python Dashboards (Streamlit/Plotly/Seaborn)**: Consume `vw_dashboard_*` views via Databricks or JDBC
+* **Data APIs**: Pull from Gold-layer KPIs and graph outputs (`customer_influence_metrics`, `loan_kpi_daily`, etc.)
+* **Pipeline Orchestration**: Extraction processes triggered via **Databricks Workflows** and **Airflow DAGs** using metadata
 
 ---
-
-## 📚 Related Modules
-
-* [`src/transformation/gold/`](../transformation/gold/) — Source datasets powering views and APIs
-* [`src/dbt/`](../dbt/) — Business logic models complementing extraction outputs
-* [`metadata/`](../../metadata/) — Configuration files for pipeline parameters and API credentials
