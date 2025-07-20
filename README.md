@@ -1,202 +1,238 @@
-# 🏠 HomeLoanIQ – Data Engineering Platform for Banking Intelligence
+# 🏠 HomeLoanIQ – Banking Intelligence Platform for Home Loan Analytics
 
-This project powers a **modular, metadata-driven platform** for **home loan product analytics**. It enables **real-time and batch data processing**, supporting critical banking KPIs like application approvals, disbursement velocity, default risk, and borrower segmentation — all within a **governed, cloud-native Azure architecture**.
-
----
-
-<img width="100%" alt="Architecture" src="https://user-images.githubusercontent.com/home-loan-arch.png" />
+**HomeLoanIQ** is a modular, metadata-driven data platform purpose-built for analyzing and optimizing the **home loan lifecycle** across large financial institutions. It supports **real-time + batch ingestion**, **graph-modeled customer insights**, **KPI-driven SQL transformations**, and **enterprise-grade data governance**.
 
 ---
 
-## 🧭 Table of Contents
+## 📚 Table of Contents
 
 1. [💼 Executive Summary](#-executive-summary)
-2. [🎯 Strategic Business Objectives](#-strategic-business-objectives)
-3. [📁 Repository Structure](#-repository-structure)
-4. [🏗️ Architecture & Technology Stack](#-architecture--technology-stack)
-5. [📥 Ingestion Design](#-ingestion-design)
-6. [📐 Data Modeling Layers](#-data-modeling-layers)
-7. [📊 KPIs & Gold Layer Examples](#-kpis--gold-layer-examples)
-8. [🚀 CI/CD & Deployment](#-cicd--deployment)
-9. [✅ Testing & Quality Assurance](#-testing--quality-assurance)
-10. [📦 Containerization & Kubernetes](#-containerization--kubernetes)
-11. [🔐 Security & Governance](#-security--governance)
-12. [🧪 Contributing](#-contributing)
-13. [📄 License](#-license)
+2. [🎯 Business Objectives](#-business-objectives)
+3. [🏗️ Architecture Overview](#-architecture-overview)
+4. [📁 Repository Structure](#-repository-structure)
+5. [📥 Ingestion Design (Batch & Streaming)](#-ingestion-design-batch--streaming)
+6. [🧱 Data Modeling (Bronze → Silver → Gold)](#-data-modeling-bronze--silver--gold)
+7. [🧮 dbt for Modular SQL Pipelines](#-dbt-for-modular-sql-pipelines)
+8. [🔗 Graph Data Modeling Layer](#-graph-data-modeling-layer)
+9. [📊 KPIs & Gold Layer Examples](#-kpis--gold-layer-examples)
+10. [🔐 Governance, Metadata & Security](#-governance-metadata--security)
+11. [🚀 CI/CD & Deployment](#-cicd--deployment)
+12. [🧪 Testing & Observability](#-testing--observability)
+13. [📦 Containerization & AKS](#-containerization--aks)
+14. [🧠 Contributing](#-contributing)
+15. [📄 License](#-license)
 
 ---
 
 ## 💼 Executive Summary
 
-**HomeLoanIQ** enables financial organizations to:
+The **HomeLoanIQ** platform enables banks and mortgage lenders to:
 
-* Monitor and optimize **loan application-to-approval timelines**
-* Track **disbursed vs sanctioned amounts** across regions
-* Analyze **default probability** using enriched customer data
-* Feed **real-time insights** to Salesforce and Tableau
-* Scale with **Azure-native, AKS-powered infrastructure**
+✅ Optimize application-to-disbursal turnaround
+📊 Monitor portfolio health, delinquency rates, and risk
+🧠 Enable predictive ML features and graph intelligence
+🔗 Maintain secure, governed, and audited data pipelines
+⚙️ Support Tableau, Salesforce, and Open APIs via a governed data mesh
 
 ---
 
-## 🎯 Strategic Business Objectives
+## 🎯 Business Objectives
 
-| Milestone         | Description                                           |
-| ----------------- | ----------------------------------------------------- |
-| 🔍 Discovery      | Identify key entities (Loans, Customers, Branches)    |
-| 🛠️ Development   | Implement Bronze → Silver → Gold transformations      |
-| 📊 KPI Dashboards | Enable Tableau and API dashboards for analysts        |
-| 🔐 Compliance     | Ensure data lineage, masking, and regulatory controls |
+| Goal                        | Description                                               |
+| --------------------------- | --------------------------------------------------------- |
+| 📈 Loan Lifecycle KPIs      | Improve approval rates, reduce NPA risk                   |
+| 🔄 Real-time Processing     | Support streaming ingestion and near real-time dashboards |
+| 🧱 Model Lineage & Quality  | Ensure traceable and validated transformations            |
+| 🛡️ Governance & Compliance | Enforce RBAC, masking, and lineage policies               |
 
-### Key Goals:
+---
 
-* 📈 Boost loan approval rate through data-driven insights
-* ⏱ Reduce TAT (Turnaround Time) across home loan lifecycle
-* 🧠 Feed ML models for churn, risk, and customer scoring
-* 📦 Achieve cloud-scale governance and modular deployment
+## 🏗️ Architecture Overview
+
+| Layer              | Tools/Tech Stack                                             |
+| ------------------ | ------------------------------------------------------------ |
+| Ingestion          | Azure Data Factory (batch), PySpark + Kafka (streaming)      |
+| Transformation     | Spark SQL (Bronze → Gold), dbt for modular SQL modeling      |
+| Graph Modeling     | GraphFrames + Delta Lake for customer-network insights       |
+| Serving            | Tableau, Power BI, Salesforce APIs, Application APIs (Flask) |
+| Orchestration      | Airflow (batch only), metadata-controlled DAGs               |
+| Metadata & Lineage | Unity Catalog, dbt docs, OpenLineage                         |
+| Deployment         | Docker, AKS, Azure DevOps, GitHub Actions                    |
 
 ---
 
 ## 📁 Repository Structure
 
 ```plaintext
-├── src/
-│   ├── ingestion/
-│   ├── transformation/
-│   │   ├── bronze/
-│   │   ├── silver/
-│   │   └── gold/
-│   ├── extraction/
-│   └── notebooks/
-├── metadata/
-├── pipelines/
-├── infra/
-│   ├── docker/
-│   ├── kubernetes/
-├── .azuredevops/
-├── docs/
-├── tests/
-└── README.md
+src/
+├── ingestion/
+│   ├── adf_templates/               # ADF JSON templates
+│   ├── pyspark_streaming/           # Kafka-based stream ingestion
+│   └── metadata_ingestion.py        # Metadata-driven logic (job.csv, proc.csv)
+│
+├── transformation/
+│   ├── bronze/                      # Spark SQL notebooks (raw)
+│   ├── silver/                      # Cleaned, enriched entity views
+│   └── gold/                        # KPI-ready aggregates and views
+│
+├── dbt/                             # dbt models for KPI logic (gold layer)
+│   ├── models/
+│   ├── snapshots/
+│   └── tests/
+│
+├── graph_modeling/                 # Graph analytics & entity resolution logic
+│   └── customer_influence_network.py
+│
+├── extraction/
+│   ├── tableau_views/
+│   └── application_apis/
+│
+metadata/
+│   └── job.csv, proc.csv, proc_param.csv
 ```
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+## 📥 Ingestion Design (Batch & Streaming)
 
-| Function           | Tooling/Technology                               |
-| ------------------ | ------------------------------------------------ |
-| Ingestion          | Azure Data Factory, Kafka, REST (for CRM/credit) |
-| Processing Engine  | Azure Databricks (PySpark), Delta Lake           |
-| Serving            | Tableau, Salesforce APIs, Excel/Power BI         |
-| Orchestration      | Airflow + Metadata (job.csv, dag.csv)            |
-| Containerization   | Docker, AKS, Helm                                |
-| CI/CD              | Azure DevOps + GitHub Actions                    |
-| Lineage & Security | Unity Catalog, Purview, Azure Key Vault          |
+**Batch Sources**
 
----
+* Core Banking DB (Loan Book, Repayment History)
+* Credit Bureau CSVs (Risk Scores)
+* Salesforce CRM (via REST)
 
-## 📥 Ingestion Design
+**Streaming Sources**
 
-Sources:
+* Kafka: Application Events, Status Updates
+* REST APIs: Mortgage calculators, property lookup
 
-* CRM Systems: Loan Applications (via REST API)
-* Core Banking: Loan Book, Repayment, Defaults (via ADF)
-* Credit Bureau: Risk Scores, History (via Batch CSV)
-* Internal APIs: Interest Rate Policies, Mortgage Calculators
-
-Metadata files (`job.csv`, `proc.csv`, `proc_param.csv`) drive the ingestion logic and pipeline behavior.
+> All ingestion jobs are metadata-driven using YAML/CSV configs and Airflow DAG templates.
 
 ---
 
-## 📐 Data Modeling Layers
+## 🧱 Data Modeling (Bronze → Silver → Gold)
 
 ### 🪵 Bronze Layer
 
-* Raw ingestion with schema-on-read
-* Partitioned Delta Lake storage
-* Minimal processing: type alignment, deduplication
+* Schema-on-read via Delta Lake
+* Partitioned + raw zone tables
+* Initial validations (nulls, dedupe)
 
 ### ✨ Silver Layer
 
-* Entity relationships formed (Customer ↔ Loan ↔ Branch)
-* Enriched with bureau score, geolocation, and employment data
-* Cleaned and validated datasets for KPIs and ML models
+* Business logic joins (Loan ↔ Customer ↔ Branch)
+* Enrichment (credit score, property valuation)
+* Denormalized entity tables for ML pipelines
 
 ### 🏅 Gold Layer
 
-* Metric-driven views and aggregates
-* Dimension tables for branch, geography, and product types
-* Supports APIs and dashboards (e.g., Tableau, Salesforce)
+* Modular, KPI-driven views and aggregates
+* Used by Tableau, APIs, and ML models
+* Implemented via Spark SQL + dbt models
+
+---
+
+## 🧮 dbt for Modular SQL Pipelines
+
+**Why dbt?**
+
+* Clean modular SQL
+* Lineage and documentation via `dbt docs`
+* Integrated with Unity Catalog and GitHub Actions
+
+```bash
+dbt run --select gold.application_volume
+dbt test --store-failures
+dbt docs generate && dbt docs serve
+```
+
+---
+
+## 🔗 Graph Data Modeling Layer
+
+GraphFrames are used to model:
+
+* 👤 Customer ↔ 🏦 Branch ↔ 🧾 Application relationships
+* 🔗 Social and financial co-relationships between applicants
+* 📉 Propagation of defaults and delinquency risk
+
+Use cases:
+
+* Influencer detection
+* Churn clusters
+* Loan recommendation paths
+
+> Stored in Delta tables with dynamic connected component scoring and centrality measures.
 
 ---
 
 ## 📊 KPIs & Gold Layer Examples
 
-### Key Metrics
+| KPI Name              | Description                                       |
+| --------------------- | ------------------------------------------------- |
+| ApplicationVolume     | Applications per day per region                   |
+| ApprovalRate          | % Approved out of total applications              |
+| ProcessingTime        | Avg. time from apply → approve → disbursal        |
+| DefaultRate           | % of loans defaulted in first 90 days             |
+| DelinquencyBucket     | Days past due segmentation (30/60/90+ DPD)        |
+| RevenueForecast       | Forecasted earnings using historical net spread   |
+| BranchEfficiencyScore | Composite KPI from SLA, loan size, and risk ratio |
 
-| KPI                    | Description                              |
-| ---------------------- | ---------------------------------------- |
-| ApplicationVolume      | Daily loan applications by city/branch   |
-| ApprovalRate           | % of applications approved               |
-| AverageProcessingTime  | TAT from application to disbursal        |
-| DefaultRate            | Defaults within 90 days post-disbursal   |
-| LoanToValueRatio       | Loan sanctioned vs property value        |
-| InterestSpread         | Net interest yield by loan type          |
-| BranchPerformanceScore | Composite KPI for RM and Ops performance |
+---
 
-> All gold KPIs follow modular SQL templates with metadata-driven parameters.
+## 🔐 Governance, Metadata & Security
+
+| Feature               | Tool/Implementation                           |
+| --------------------- | --------------------------------------------- |
+| Data Lineage          | Unity Catalog, dbt docs, Airflow DAGs         |
+| Data Contracts        | Great Expectations, PySpark + dbt `tests/`    |
+| RBAC & Access Control | Unity Catalog + AKV + ACLs                    |
+| PII Masking           | Column-level security + dynamic views         |
+| Auditability          | Usage logs, parameter logging, and logging DB |
 
 ---
 
 ## 🚀 CI/CD & Deployment
 
-* Notebook validation + parameter injection (Dev → Prod)
-* ADF ARM template promotion
-* Airflow DAG sync and scheduling
-* Cluster provisioning via Terraform or REST APIs
+* Azure DevOps Pipelines: Validate & promote dbt + ADF
+* GitHub Actions: Build → test → deploy Spark notebooks + Airflow
+* Helm Charts: Deploy streaming pods on AKS
+* Terraform: Provision data lake, workspace, vaults
 
 ---
 
-## ✅ Testing & Quality Assurance
+## 🧪 Testing & Observability
 
-| Test Type         | Tools                               |
-| ----------------- | ----------------------------------- |
-| Data Contract     | PySpark schema + Great Expectations |
-| Transformation QA | Unit tests, snapshot diffs          |
-| KPI Validation    | Threshold alerts via Prometheus     |
-| Lineage Testing   | Unity Catalog metadata checks       |
-
----
-
-## 📦 Containerization & Kubernetes
-
-* AKS pods for real-time stream ingestion (Kafka, REST)
-* Spark Streaming jobs containerized via Docker
-* Helm charts define deployment and autoscaling rules
+| Validation Type    | Tools                                 |
+| ------------------ | ------------------------------------- |
+| Schema Validation  | Great Expectations, dbt schema tests  |
+| Volume & Freshness | Airflow SLA, dbt freshness tests      |
+| Alerting           | Prometheus + Grafana (KPI thresholds) |
+| Regression QA      | Snapshot diffs + data contracts       |
 
 ---
 
-## 🔐 Security & Governance
+## 📦 Containerization & AKS
 
-* Azure Key Vault for secret management
-* Unity Catalog for RBAC, PII masking
-* Full lineage via metadata and data contracts
-* Compliance-ready audit logs for DQ and user access
+* Spark jobs as Docker containers
+* AKS pods handle streaming ingestion and model serving
+* Load-balanced Flask APIs for dashboard/application support
+* Helm-based deployment + secrets via AKV
 
 ---
 
-## 🧪 Contributing
+## 🧠 Contributing
 
 ```bash
-git clone https://github.com/your-org/homeloaniq.git
-cd homeloaniq
-git checkout -b feature/new-kpi-metric
-# make changes
-git push origin feature/new-kpi-metric
+git clone https://github.com/org-name/HomeLoanIQ.git
+git checkout -b feature/kpi-disbursal
+# Make your changes
+git commit -m "Add KPI for daily disbursals"
+git push origin feature/kpi-disbursal
 ```
 
-Then open a Pull Request and tag reviewers.
+Open a PR and follow governance policy defined in `/docs/contributing.md`.
 
 ---
 
 ## 📄 License
-
