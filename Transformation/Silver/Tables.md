@@ -1,4 +1,3 @@
-In the **Silver Layer**, data is cleansed and enriched. This is where transformation logic occurs, and we join multiple data sources to create unified, validated datasets. Here’s the SQL for the **Silver Layer tables** (no security applied at this stage):
 
 ### **1. Silver Layer – Transformed Tables**
 
@@ -345,10 +344,3 @@ WHERE repayment_amount IS NOT NULL;
 
 The **Silver Layer** cleanses and enriches the raw data from the **Bronze Layer** and creates reusable, enriched datasets that are ready for analysis or further processing. These datasets:
 
-* Combine data from multiple sources
-* Apply necessary business rules and transformations
-* Enable more efficient reporting and analytics without affecting raw ingestion data
-
-This approach follows best practices for transforming raw data into actionable insights while keeping the system modular and scalable.
-
-Let me know if you need any further adjustments or additional steps!
