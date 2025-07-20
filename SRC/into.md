@@ -1,159 +1,132 @@
+# 📥 `src/ingestion/` – Unified Data Ingestion Framework
 
-This directory contains the **core data processing logic** for the Home Loan Intelligence platform, following a **Bronze → Silver → Gold** architecture.
+This directory implements **metadata-driven, enterprise-grade ingestion pipelines** for the HomeLoanIQ platform, enabling ingestion from both batch and streaming data sources. It adheres to **data quality, governance, and operational excellence standards** aligned with banking regulations and scalable FinTech architecture.
 
 ---
 
-### 📁 Folder Structure
+## 📁 Directory Structure
 
 ```plaintext
 src/
-├── ingestion/          # Raw file ingestion logic (batch/API/stream)
-├── transformation/     # ETL scripts categorized into Bronze/Silver/Gold
-│   ├── bronze/
-│   ├── silver/
-│   └── gold/
-├── extraction/         # Export scripts for Tableau, APIs, Salesforce
-├── notebooks/          # Exploratory notebooks (Databricks/Zeppelin)
-└── utils/              # Reusable functions, validations, config loaders
-```
+└── ingestion/
+    ├── adf_templates/           # Batch ingestion templates (Azure Data Factory)
+    ├── pyspark_streaming/       # Real-time PySpark ingestion from Kafka
+    └── metadata_ingestion.py    # Unified metadata-based ingestion driver
+````
 
 ---
 
-## 🔄 1. `ingestion/` – Data Ingestion Pipelines
+## 🔄 1. `adf_templates/` – Batch Ingestion (ADF)
 
-Handles ingestion from:
+Contains parameterized **Azure Data Factory JSON templates** that ingest data from:
 
-* Core banking (via ADF or API)
-* CRM / Loan Origination System (REST, JSON)
-* Bureau Data (CSV/Excel, SFTP)
-* Real-time Kafka streams
+* 📂 **Core banking systems** (loan book, repayments)
+* 📊 **Salesforce CRM** (loan leads, interactions)
+* 🧾 **External sources** (credit bureaus, property APIs)
 
-**Key Files:**
+### 🔧 Features
 
-| File                              | Purpose                                |
-| --------------------------------- | -------------------------------------- |
-| `ingest_crm_applications.py`      | Load CRM application data              |
-| `ingest_corebank_loanbook.py`     | Load core banking disbursal data       |
-| `ingest_credit_bureau_batch.py`   | Batch load credit scores               |
-| `ingest_stream_kafka_realtime.py` | Consume Kafka topic for real-time apps |
+| Feature                      | Description                                     |
+| ---------------------------- | ----------------------------------------------- |
+| Modular Datasets & Pipelines | Reusable ADF templates with parameter injection |
+| Retry & Timeout Policies     | Fault tolerance and SLA handling                |
+| Source/Target Abstraction    | Controlled via metadata configuration files     |
+| Audit & Logging              | Azure Monitor integration                       |
 
-All ingestion jobs follow this **pattern**:
+> ✅ All pipelines use metadata (`job.csv`, `proc.csv`) for dynamic binding and config validation.
+
+---
+
+## ⚡ 2. `pyspark_streaming/` – Real-time Kafka Ingestion
+
+Includes **PySpark Structured Streaming** jobs for Kafka topics such as:
+
+* `loan_applications`
+* `customer_engagement`
+* `approval_events`
+* `loan_disbursements`
+
+### 🔧 Capabilities
+
+* Schema-on-read + schema evolution
+* Delta Lake streaming sink with checkpointing
+* PII redaction and GDPR-compliant handling
+* DLQ (Dead Letter Queue) for invalid/malformed records
+* Streaming expectations validated via **Great Expectations**
+
+### 📌 Example Flow
 
 ```python
-def run_ingestion(metadata: dict):
-    df = read_source(metadata)
-    df_clean = clean_and_standardize(df)
-    write_to_delta(df_clean, metadata['target_path'])
+spark.readStream \
+  .format("kafka") \
+  .option("subscribe", "loan_applications") \
+  .load() \
+  .transform(parse_and_validate) \
+  .writeStream \
+  .format("delta") \
+  .option("checkpointLocation", "...") \
+  .start("/mnt/bronze/loan_apps")
 ```
 
 ---
 
-## 🔁 2. `transformation/` – ETL Pipeline Logic
+## 📋 3. `metadata_ingestion.py` – Metadata-Driven Controller
 
-Organized into **Bronze**, **Silver**, and **Gold** layers:
+A **centralized PySpark ingestion driver** that dynamically controls batch and stream pipelines using configuration files.
 
-### 🪵 `bronze/`: Raw Ingested Staging
+### 🗂️ Metadata Inputs
 
-* Minimal processing (deduplication, timestamp formatting)
-* Schema alignment using JSON contracts
-* Saved as Delta Tables partitioned by date
+| File Name        | Purpose                                      |
+| ---------------- | -------------------------------------------- |
+| `job.csv`        | Defines job ID, type, frequency, enable flag |
+| `proc.csv`       | Source → target mappings                     |
+| `proc_param.csv` | Column transformations, lookups, validations |
 
-Example: `bronze_crm_applications.py`
+### 🧠 Highlights
 
-```python
-df = spark.read.format("delta").load(bronze_path)
-df = deduplicate(df, ["ApplicationID"])
-df.write.mode("overwrite").saveAsTable("bronze.crm_applications")
+* Add or modify ingestion jobs **without touching code**
+* Built-in logging, audit, SLA breach alerting
+* Secure path masking using Azure Key Vault
+* Scales horizontally across new data sources
+
+### 🔁 Usage
+
+```bash
+python metadata_ingestion.py \
+  --job_id HL_DISBURSEMENTS \
+  --env dev \
+  --config metadata/job.csv
 ```
 
 ---
 
-### ✨ `silver/`: Cleansed, Enriched Data
+## 🛡️ Governance & Quality Controls
 
-* Joins across sources (CRM ↔ CoreBank ↔ Bureau)
-* Adds derived columns: `LoanToValue`, `IsHighRisk`, etc.
-* Standardizes timestamp, customer keys, channel types
-
-Example: `silver_enriched_loans.py`
-
-```python
-df = join_crm_core(df_crm, df_core)
-df = enrich_with_bureau_score(df, df_bureau)
-df.write.format("delta").mode("overwrite").saveAsTable("silver.enriched_loans")
-```
+| Area             | Implementation Details                          |
+| ---------------- | ----------------------------------------------- |
+| **Data Quality** | Great Expectations for schema and null checks   |
+| **Security**     | AKV + Unity Catalog column-level ACLs           |
+| **Lineage**      | Auto-traced via metadata configs and audit logs |
+| **Idempotency**  | Delta Lake UPSERTs using `merge` logic          |
+| **Logging**      | Azure Monitor + custom ingestion audit trail    |
 
 ---
 
-### 🏅 `gold/`: KPI and Reporting Models
+## 🌍 Compliance & Scale
 
-* Pre-aggregated KPI tables for dashboarding
-* Modular SQL templates (Net Disbursal, Approval Rate, TAT)
-* Filters and dimensions applied (Region, Branch, Product)
+This ingestion architecture adheres to:
 
-Example: `gold_kpi_disbursal_rate.py`
-
-```python
-df = calculate_disbursal_kpi(df_enriched)
-df.write.mode("overwrite").saveAsTable("gold.kpi_disbursal_rate")
-```
+* 🔐 **Banking security regulations** (RBAC, PII redaction)
+* 📈 **Operational scalability** (Kafka partitioning, ADF concurrency)
+* 📑 **Metadata traceability** (pipeline and transformation-level logging)
+* 🧪 **Data contracts** enforced at ingestion boundary
 
 ---
 
-## 📤 3. `extraction/` – Data Serving & APIs
+## 🔮 Future Roadmap
 
-* Exports data to:
-
-  * Tableau extracts (via Hyper API)
-  * Salesforce updates
-  * External APIs
-
-**Examples:**
-
-* `extract_tableau_loan_kpi.py`
-* `push_to_salesforce.py`
-* `api_borrower_profile.py`
-
----
-
-## 📓 4. `notebooks/` – Analysis & Debugging
-
-Contains Databricks/Zeppelin notebooks for:
-
-* Profiling new sources
-* Data quality explorations
-* KPI validation and stakeholder walkthroughs
-
-Naming pattern: `explore_<source>.ipynb`
-
----
-
-## 🧰 5. `utils/` – Shared Functions
-
-Reusable modules for:
-
-* Spark validation logic (e.g., null checks, schema match)
-* Great Expectations integration
-* Metadata reading
-* Logging and alerting
-
-**Key files:**
-
-* `validator.py`
-* `metadata_reader.py`
-* `alert_slack.py`
-* `spark_utils.py`
-
----
-
-## ✅ Best Practices
-
-| Area                     | Practice                                                   |
-| ------------------------ | ---------------------------------------------------------- |
-| File Naming              | `verb_source_context.py` (`ingest_crm_applications.py`)    |
-| Function Reuse           | Move generic logic to `utils/`                             |
-| Parameterization         | Metadata-driven (via `job.csv`, `proc_param.csv`)          |
-| Delta Lake Usage         | Bronze → Silver → Gold format                              |
-| Data Contract Compliance | Schema validation via JSON or Great Expectations           |
-| Modularity               | Break up large flows by domain (Customer, Loans, Products) |
-
+* [ ] Kafka → Delta Live Tables integration
+* [ ] Streaming alerting to Slack/MS Teams
+* [ ] Real-time schema drift detection with Prometheus + Airflow
+* [ ] Auto-document ingestion lineage for dbt + Unity Catalog
 
