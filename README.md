@@ -20,9 +20,6 @@
 10. [🚀 CI/CD & Deployment](#-cicd--deployment)
 11. [🧪 Testing & Observability](#-testing--observability)
 12. [📦 Containerization](#-containerization)
-13. [🧠 Contributing](#-contributing)
-14. [📄 License](#-license)
-
 ---
 
 ## 💼 Executive Summary
@@ -187,20 +184,6 @@ metadata/
 * Spark jobs containerized via Docker
 * FastAPI apps serve dashboards and APIs behind load balancers
 * Secrets managed with Azure Key Vault, deployed via secure pipelines
-
----
-
-## 🧠 Contributing
-
-```bash
-git clone https://github.com/your-org/HomeLoanIQ.git
-git checkout -b feature/<your-feature>
-# Implement your feature
-git commit -m "Add feature description"
-git push origin feature/<your-feature>
-```
-
-Please open pull requests following guidelines in `/docs/contributing.md`.
 
 ---
 
