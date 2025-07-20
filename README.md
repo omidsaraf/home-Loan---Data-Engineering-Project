@@ -51,9 +51,9 @@ The **HomeLoanIQ** platform empowers banks and mortgage lenders to:
 | Layer              | Tools / Technologies                                         |
 | ------------------ | ------------------------------------------------------------ |
 | Ingestion          | Azure Data Factory (batch), PySpark + Kafka (streaming)      |
-| Transformation     | Spark SQL (Bronze → Gold)                                    |
+| Transformation     | Spark SQL (Bronze → Silver → Gold)                           |
 | Graph Modeling     | GraphFrames + Delta Lake for customer influence networks     |
-| Serving            | Tableau, Power BI, Salesforce APIs, FastAPI application APIs |
+| Serving            | Seaborn, Power BI, Salesforce APIs, FastAPI application APIs |
 | Orchestration      | Airflow DAGs driven by metadata configurations               |
 | Metadata & Lineage | Unity Catalog, OpenLineage integration                       |
 | Deployment         | Docker containers, Azure DevOps, GitHub Actions              |
@@ -64,25 +64,27 @@ The **HomeLoanIQ** platform empowers banks and mortgage lenders to:
 
 ```plaintext
 src/
-├── ingestion/
+├── Ingestion/
 │   ├── adf_templates/               # Azure Data Factory JSON templates
 │   ├── pyspark_streaming/           # Kafka streaming ingestion code
 │   └── metadata_ingestion.py        # Metadata-driven ingestion orchestration
 │
-├── transformation/
+├── Transformation/
 │   ├── bronze/                      # Raw data Spark SQL notebooks & tables
 │   ├── silver/                      # Cleaned, enriched entity views & logic
 │   └── gold/                        # KPI-ready aggregates and data marts
 │
-├── graph_modeling/                 # Graph analytics & entity resolution logic
+├── Graph_modeling/                 # Graph analytics & entity resolution logic
 │   └── customer_influence_network.py
 │
-├── extraction/
-│   ├── tableau_views/              # SQL views optimized for BI consumption
-│   └── application_apis/           # FastAPI-based REST APIs exposing gold data
+├── Extraction/
+│   ├── Dashboard_views/              # SQL views optimized for BI consumption
+│   └── Application_apis/           # FastAPI-based REST APIs exposing gold data
 │
-metadata/
-│   └── job.csv, proc.csv, proc_param.csv   # Metadata configurations
+├── Test/
+│
+Metadata/
+│   └── job.csv, procedures.csv,parameter.csv   # Metadata configurations
 ```
 
 ---
