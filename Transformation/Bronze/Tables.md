@@ -1,8 +1,3 @@
-Let's design the **Bronze Layer** for your **HomeLoanIQ Data Engineering Platform** using the project context. In this layer, we will focus on **raw ingestion** (both **batch** and **streaming**) into **Azure Data Lake Storage Gen2 (ADLS Gen2)** with **no transformations**. The data will be stored in Delta format to enable **ACID transactions**, **schema evolution**, and **versioning**.
-
-Below are the **required tables for the Bronze layer** that include both **streaming** and **batch ingestion**.
-
----
 
 ### **1. Batch Ingestion: Loan Applications (Raw Data)**
 
