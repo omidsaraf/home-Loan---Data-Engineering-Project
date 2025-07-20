@@ -1,9 +1,26 @@
 # 🏠 HomeLoanIQ – Loan Approval & Risk Monitoring with Customer Influence
 
-**HomeLoanIQ** is a scalable, metadata-driven data platform designed to analyze and optimize the **home loan lifecycle** within large financial institutions. It supports **real-time and batch ingestion**, leverages **graph-based customer influence modeling**, provides **KPI-driven modular SQL transformations**, and enforces **enterprise-grade data governance** and security.
+**HomeLoanIQ** is a modular, metadata-driven data platform that modernizes the end-to-end **home loan analytics lifecycle**. Designed for scale, it enables real-time and batch data ingestion, **customer risk prediction through graph modeling**, and **enterprise-grade KPI monitoring** through streamlined APIs and dashboards.
 
-<img width="1244" height="468" alt="image" src="https://github.com/user-attachments/assets/27b62801-624c-4692-862c-6a3cf672cd5b" />
+---
+### 🔎 Why Risk Monitoring with Customer Influence Matters
 
+Traditional risk scoring treats each borrower as independent. But in reality, borrowers form **influence networks** via:
+- 🔗 Referrals (agents, staff, family)
+- 👥 Co-applicants and guarantors
+- 🏢 Shared employment or branch origin
+
+When an influential borrower misses a payment, **risk propagates** to others they’re linked to — often before defaults occur.
+
+> HomeLoanIQ uses **graph analytics** to uncover these indirect risks, calculate influence scores, and enable **early intervention**.
+
+This enhances:
+- 📉 NPL (Non-Performing Loan) prevention
+- 🔍 Risk clustering and subnetwork tracing
+- 📈 Performance visibility at staff/branch level
+
+---
+<img width="1244" height="468" alt="image" src="https://github.com/user-attachments/assets/09c3cb8f-bbf9-4229-83ea-71e4922dc6f0" />
 
 ---
 
@@ -16,47 +33,49 @@
 5. [📥 Ingestion Design (Batch & Streaming)](#-ingestion-design-batch--streaming)
 6. [🧱 Data Modeling (Bronze → Silver → Gold)](#-data-modeling-bronze--silver--gold)
 7. [🔗 Graph Data Modeling Layer](#-graph-data-modeling-layer)
-8. [📊 Exatraction](#-extraction)
+8. [📊 Extraction](#-extraction)
 9. [🔐 Governance, Metadata & Security](#-governance-metadata--security)
 10. [🚀 CI/CD & Deployment](#-cicd--deployment)
 11. [🧪 Testing & Observability](#-testing--observability)
 12. [📦 Containerization](#-containerization)
+    [📄 License](#-license)
+
 ---
 
 ## 💼 Executive Summary
 
-The **HomeLoanIQ** platform empowers banks and mortgage lenders to:
+The **HomeLoanIQ** platform empowers banks and mortgage providers to:
 
-* ✅ Accelerate loan application to disbursal cycles
-* 📊 Monitor portfolio health, delinquency, and risk metrics in near real-time
-* 🧠 Incorporate predictive ML models enriched by graph-based customer insights
-* 🔗 Deliver governed, secure, and auditable data pipelines to BI tools, APIs, and CRM systems
-* ⚙️ Seamlessly integrate with Tableau, Salesforce, and RESTful APIs via a unified data mesh
+- ✅ Accelerate the loan lifecycle through automation
+- 🔍 Monitor default risks using real-time and historical insights
+- 🧠 Enrich traditional models with **graph-based customer influence scores**
+- 🔐 Ensure secure, governed access to sensitive customer data
+- 📊 Serve insights via Seaborn dashboards, APIs, and CRM systems
 
 ---
 
 ## 🎯 Business Objectives
 
-| Goal                        | Description                                               |
-| --------------------------- | --------------------------------------------------------- |
-| 📈 Loan Lifecycle KPIs      | Improve approval rates and reduce non-performing assets   |
-| 🔄 Real-time Processing     | Support streaming ingestion for near real-time dashboards |
-| 🧱 Data Lineage & Quality   | Ensure traceability and validation of all transformations |
-| 🛡️ Governance & Compliance | Enforce role-based access, masking, and audit policies    |
+| Objective                  | Description                                                 |
+|---------------------------|-------------------------------------------------------------|
+| 📈 Optimize KPIs           | Approval rate, default detection, processing SLA            |
+| 🔄 Real-time Monitoring    | Trigger alerts on live loan and influence activity          |
+| 🔗 Influence-Aware Risk    | Proactively track social/branch-level exposure               |
+| 🛡️ Regulatory Compliance  | Metadata, lineage, role-based access, and data contracts     |
 
 ---
 
 ## 🏗️ Architecture Overview
 
-| Layer              | Tools / Technologies                                         |
-| ------------------ | ------------------------------------------------------------ |
-| Ingestion          | Azure Data Factory (batch), PySpark + Kafka (streaming)      |
-| Transformation     | Spark SQL (Bronze → Silver → Gold)                           |
-| Graph Modeling     | GraphFrames + Delta Lake for customer influence networks     |
-| Serving            | Seaborn, Power BI, Salesforce APIs, FastAPI application APIs |
-| Orchestration      | Airflow DAGs driven by metadata configurations               |
-| Metadata & Lineage | Unity Catalog, OpenLineage integration                       |
-| Deployment         | Docker containers, Azure DevOps, GitHub Actions              |
+| Layer              | Tools / Technologies                                           |
+|--------------------|---------------------------------------------------------------|
+| Ingestion          | Azure Data Factory (batch), Kafka + PySpark (streaming)       |
+| Transformation     | PySpark SQL (Bronze → Silver → Gold)                          |
+| Graph Modeling     | GraphFrames, Delta Lake, PageRank, NetworkX                   |
+| Serving            | Seaborn, Pandas, FastAPI                                      |
+| Orchestration      | Apache Airflow (metadata-driven DAGs)                         |
+| Metadata & Lineage | Unity Catalog, OpenLineage                                    |
+| Deployment         | Docker, Azure DevOps, GitHub Actions                          |
 
 ---
 
@@ -78,119 +97,113 @@ src/
 │   └── customer_influence_network.py
 │
 ├── Extraction/
-│   ├── Dashboard_views/              # SQL views optimized for BI consumption
-│   └── Application_apis/           # FastAPI-based REST APIs exposing gold data
+│   ├── Dashboard_views/             # SQL views for dashboard/BI use
+│   └── Application_apis/            # FastAPI apps for KPI & influence metrics
 │
-├── Test/
+├── Test/                           # PySpark + validation tests
 │
 Metadata/
-│   └── job.csv, procedures.csv,parameter.csv   # Metadata configurations
+│   └── jobs.csv, contracts.csv      # Metadata for pipelines and validation
 ```
 
 ---
 
 ## 📥 Ingestion Design (Batch & Streaming)
 
-**Batch Sources**
+### Batch Sources
 
-* Core Banking DB (Loan Book, Repayment History)
-* Credit Bureau CSVs (Risk Scores)
-* Salesforce CRM (via REST API)
+- Core Banking DB: Loan master, repayments, branches
+- Salesforce CRM: Leads, agents, referrals
+- Credit Bureau Files: CSV-based scoring & history
 
-**Streaming Sources**
+### Streaming Sources
 
-* Kafka (Application events, status updates)
-* REST APIs (Mortgage calculators, property lookup)
+- Kafka: Loan status, real-time decision events
+- REST APIs: Mortgage calculator, property lookup
 
-> All ingestion pipelines are metadata-driven with Airflow-managed DAGs and parameterized job configs.
+> All ingestion paths are controlled by metadata configs and DAG templates
 
 ---
 
 ## 🧱 Data Modeling (Bronze → Silver → Gold)
 
-### Bronze Layer
+### 🥉 Bronze
+- Raw schema-on-read format, partitioned by load date
+- Retains source fidelity for auditing
 
-* Raw, schema-on-read Delta tables partitioned by ingestion date
-* No transformations except schema validation and archival
+### 🥈 Silver
+- Validated, deduplicated, enriched data
+- Consolidated customer entities with referential joins
 
-### Silver Layer
-
-* Cleaned, de-duplicated, enriched data (joined with credit bureau, property values)
-* Entity resolution and denormalized entity tables
-
-### Gold Layer
-
-* Aggregated KPIs and curated views consumed by BI, APIs, and ML pipelines
-* Modular SQL artifacts with thorough testing and documentation
+### 🥇 Gold
+- Ready-to-serve KPI models and influence metrics
+- SQL modularity for maintainability and version control
 
 ---
 
 ## 🔗 Graph Data Modeling Layer
 
-* Uses GraphFrames to build customer influence and risk propagation networks
-* Models multi-hop relationships: borrowers, guarantors, branches, referrals
-* Calculates centrality, community detection, and risk scoring metrics
-* Outputs stored in Delta Lake for ML feature generation and dashboards
+- Constructs influence networks using customer referrals, co-applicants, and loan agents
+- Applies **PageRank**, **degree centrality**, and **community detection**
+- Maps how influence spreads across borrowers and branches
+- Outputs influence scores used in approval decisions and risk alerts
 
 ---
 
 ## 📊 Extraction
 
-| KPI Name              | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| ApplicationVolume     | Number of applications per day per region            |
-| ApprovalRate          | Percentage of approved loans over total applications |
-| ProcessingTime        | Average duration from application to disbursal       |
-| DefaultRate           | Percentage of loans defaulted within 90 days         |
-| DelinquencyBucket     | Segmentation by days past due (30/60/90+ DPD)        |
-| RevenueForecast       | Earnings forecast based on net interest spread       |
-| BranchEfficiencyScore | Composite KPI combining SLA, loan size, and risk     |
+| KPI Name              | Description                                               |
+|-----------------------|-----------------------------------------------------------|
+| ApplicationVolume     | Daily loan applications per region                        |
+| ApprovalRate          | Percentage of approved loans per day                      |
+| ProcessingTime        | Time from submission to disbursal                         |
+| DefaultRate           | Loans defaulted within 90 days of issue                   |
+| DelinquencyBucket     | Categorized by 30/60/90+ days past due                    |
+| RevenueForecast       | Predicted net revenue from active loans                   |
+| BranchEfficiencyScore | SLA compliance × loan value × customer influence factor   |
 
-- Dashborad with Seaborn
-- Fast API Call for application
-
+- 📈 **Seaborn Dashboards**: In `extraction/Dashboard_views/`
+- 🌐 **FastAPI Services**: Expose KPIs & influence insights via `/application_apis/`
 
 ---
 
 ## 🔐 Governance, Metadata & Security
 
-| Feature         | Implementation                                   |
-| --------------- | ------------------------------------------------ |
-| Data Lineage    | Unity Catalog, OpenLineage, Airflow DAG tracking |
-| Data Contracts  | Great Expectations rules, PySpark tests          |
-| Access Control  | Unity Catalog RBAC, Azure Key Vault, ACLs        |
-| PII Masking     | Column-level security policies, dynamic masking  |
-| Audit & Logging | Usage logs, metadata-driven job auditing         |
+| Feature           | Implementation                                         |
+|-------------------|-------------------------------------------------------|
+| Lineage           | Unity Catalog + OpenLineage integration               |
+| Metadata Control  | CSV + JSON-based configs for job parameters           |
+| Data Contracts    | Great Expectations + PySpark tests                    |
+| Access Control    | Unity Catalog RBAC, token-based FastAPI auth          |
+| PII Masking       | Column-level policies and role-based views            |
+| Audit Trails      | Metadata tables log every job run and change         |
 
 ---
 
 ## 🚀 CI/CD & Deployment
 
-* Azure DevOps and GitHub Actions pipelines automate testing and deployment
-* Docker containers host Spark jobs and APIs
-* Infrastructure as Code provisions data lake and compute resources
+- GitHub Actions: Automated build + test for every commit
+- Azure DevOps: Promotion and deployment workflows
+- Dockerized Spark & FastAPI apps deployed as services
 
 ---
 
 ## 🧪 Testing & Observability
 
-| Validation Type    | Tools                                  |
-| ------------------ | -------------------------------------- |
-| Schema Validation  | Great Expectations, PySpark tests      |
-| Volume & Freshness | Airflow SLAs, freshness monitors       |
-| Alerting           | Prometheus + Grafana monitoring        |
-| Regression QA      | Snapshot diffs and contract validation |
+| Check Type         | Tools Used                                    |
+|--------------------|-----------------------------------------------|
+| Schema & Null Checks | Great Expectations, PySpark assert tests     |
+| Volume & SLA        | Airflow + metadata volume audits              |
+| Alerts & Logging    | Prometheus + structured pipeline logging      |
+| Regression Tests    | Snapshot diffs, test gold table outputs       |
 
 ---
 
 ## 📦 Containerization
 
-* Spark jobs containerized via Docker
-* FastAPI apps serve dashboards and APIs behind load balancers
-* Secrets managed with Azure Key Vault, deployed via secure pipelines
-
----
+- Spark jobs and APIs containerized with **Docker**
+- External secrets managed with **Azure Key Vault**
+- Deployable to cloud VMs, App Services, or private networks
 
 ## 📄 License
-
 
