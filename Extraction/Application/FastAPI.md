@@ -1,106 +1,115 @@
 
-This module contains **RESTful Python APIs** built using **FastAPI** (or Flask), which expose curated Gold-layer datasets—like KPIs, customer influence scores, and default risk metrics—to operational apps, portals, and external systems. It enables **secure**, **governed**, and **real-time data access** from the HomeLoanIQ platform.
+This module exposes **governed, real-time APIs** using **FastAPI** to deliver business-ready, Gold-layer metrics—like **customer KPIs**, **influence networks**, and **risk scores**—to digital banking platforms, Salesforce, internal portals, and fraud analytics tools.
 
 ---
 
 ## 📁 Directory Structure
 
 ```plaintext
-src/
-└── extraction/
-    └── application_apis/
-        ├── main.py                      # API entrypoint
-        ├── routers/
-        │   ├── kpi_metrics.py           # Endpoints for KPIs
-        │   ├── influence_scores.py      # Endpoints for graph-based metrics
-        │   └── customer_profiles.py     # Customer profile exposure
-        ├── services/
-        │   ├── data_loader.py           # Functions to query Delta tables via Spark SQL
-        │   └── security.py              # OAuth2, RBAC, masking utilities
-        ├── configs/
-        │   └── api_config.yaml          # Metadata for endpoints and auth
-        └── utils/
-            └── logger.py                # Logging and tracing helpers
+extraction/
+└── application_apis/
+    ├── main.py                       # FastAPI app entry point
+    ├── api/
+    │   ├── endpoints/
+    │   │   ├── kpi.py                # Customer KPI endpoints
+    │   │   └── influence_scores.py   # Customer influence graph endpoints
+    │   └── dependencies.py           # Auth, SparkSession, config loaders
+    ├── models/                       # API request/response schemas
+    ├── utils/
+    │   ├── spark_session.py          # Delta SparkSession loader
+    │   └── logger.py                 # Structured logging setup
+    ├── configs/
+    │   └── api_config.yaml           # Metadata-driven routing config
+    ├── requirements.txt              # Python dependencies
+    └── Dockerfile                    # Containerization for deployment
 ```
 
 ---
 
-## 🚀 Key Capabilities
+## 🚀 Capabilities at a Glance
 
-| Feature                 | Description                                                               |
-| ----------------------- | ------------------------------------------------------------------------- |
-| **FastAPI Framework**   | Fully async, OpenAPI-documented, highly performant API base               |
-| **Spark SQL Backend**   | APIs query gold-layer Delta tables using Spark SQL from within Databricks |
-| **RBAC & OAuth2**       | Auth & authorization via Azure AD or Keycloak tokens                      |
-| **Metadata-Driven**     | Endpoints, parameters, roles defined in external YAML config              |
-| **Secure PII Exposure** | Masking logic (phone, email, names) applied via metadata or view logic    |
-| **Logging & Tracing**   | API usage monitored with request IDs and alerts via Azure Monitor         |
+| Feature                | Details                                                             |
+| ---------------------- | ------------------------------------------------------------------- |
+| **Framework**          | FastAPI with automatic OpenAPI docs & async handlers                |
+| **Data Source**        | Reads Delta tables (`gold_customer_kpi`, `gold_customer_influence`) |
+| **Execution Engine**   | Uses PySpark in a Databricks runtime or Spark-on-K8s                |
+| **Security**           | OAuth2, Azure AD tokens, Unity Catalog role-based masking           |
+| **Metadata-Driven**    | YAML config to define endpoints, masking, and RBAC                  |
+| **Logging & Auditing** | API access logs tracked by request ID, sent to Azure Monitor        |
 
 ---
 
-## ✨ Example: `/routers/influence_scores.py`
+## 🧪 Example: Influence Graph Endpoint (`influence_scores.py`)
 
 ```python
 from fastapi import APIRouter, Depends
-from services.data_loader import load_gold_table
-from services.security import authorize_user
+from utils.spark_session import get_spark
+from api.dependencies import authorize_user
 
 router = APIRouter()
 
 @router.get("/influence/top_customers", tags=["Influence Scores"])
 def get_top_influencers(limit: int = 10, user=Depends(authorize_user)):
-    df = load_gold_table("gold_customer_influence_scores")
-    top = df.orderBy("page_rank", ascending=False).limit(limit).toPandas()
-    return top.to_dict(orient="records")
+    spark = get_spark()
+    df = spark.table("gold_customer_influence")
+    top_df = df.orderBy("page_rank", ascending=False).limit(limit)
+    return top_df.toPandas().to_dict(orient="records")
 ```
 
 ---
 
-## 🔐 Security Best Practices
+## 🔐 Enterprise-Grade Security
 
-| Layer              | Mechanism                                        |
-| ------------------ | ------------------------------------------------ |
-| Authentication     | OAuth2 / Azure AD                                |
-| Authorization      | Role-based logic via Unity Catalog roles         |
-| PII Masking        | Masking by view (`with_mask`, `no_mask`) or code |
-| Secrets Management | Azure Key Vault for DB tokens and API keys       |
-| Audit Logging      | Logged via `utils/logger.py` and sent to Azure   |
+| Layer              | Description                                                          |
+| ------------------ | -------------------------------------------------------------------- |
+| Authentication     | OAuth2 / Azure AD + JWT token validation                             |
+| Authorization      | Role-based access via Unity Catalog or external RBAC engine          |
+| PII Protection     | Configurable masking on sensitive fields (phone, email, DOB, etc.)   |
+| Secrets Management | Secure token handling using Azure Key Vault or environment variables |
+| Audit Logging      | Logs stored per endpoint with timestamps and user IDs                |
 
 ---
 
-## ⚙️ Metadata Config Example (`configs/api_config.yaml`)
+## 📂 Example Metadata Config (`configs/api_config.yaml`)
 
 ```yaml
 endpoints:
-  - path: /kpis/daily
-    source: gold_kpi_daily
+  - path: /kpis/customer_summary
+    source: gold_customer_kpi
     auth_required: true
     masking: true
-  - path: /influence/top_customers
-    source: gold_customer_influence_scores
-    auth_required: true
     limit: 100
+
+  - path: /influence/top_customers
+    source: gold_customer_influence
+    auth_required: true
+    limit: 50
 
 roles:
   analyst:
     access:
-      - /kpis/daily
-  fraud_analyst:
+      - /kpis/customer_summary
+
+  fraud_investigator:
     access:
       - /influence/top_customers
 ```
 
 ---
 
-## 🔁 Integration with Data Platform
+## 🔁 Platform Integration
 
-* Reads from **Delta tables** in the Gold layer via **SparkSession** or SQL endpoints.
-* API access is **token-based** and governed using **Unity Catalog roles**.
-* Triggered and monitored via **Airflow DAGs** or **Databricks Workflows** with metadata-driven job parameters.
+| Component               | Role                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| **Delta Lake**          | Gold-layer data source, versioned & ACID-compliant         |
+| **SparkSession**        | All APIs run Spark SQL via shared `spark_session.py`       |
+| **Unity Catalog**       | Secure access control and field-level masking              |
+| **Airflow / Workflows** | Trigger FastAPI deployment or refresh Gold layer if needed |
+| **Docker**              | Deployment-ready container (`Dockerfile`)                  |
 
 ---
 
-## 🧪 Test Example (`tests/test_influence_scores.py`)
+## 🧪 Unit Test: `tests/test_influence_scores.py`
 
 ```python
 from fastapi.testclient import TestClient
@@ -114,6 +123,4 @@ def test_get_top_influencers():
     assert isinstance(response.json(), list)
     assert "page_rank" in response.json()[0]
 ```
-
----
 
