@@ -206,30 +206,4 @@ Please open pull requests following guidelines in `/docs/contributing.md`.
 
 ## 📄 License
 
-[MIT License](./LICENSE)
 
----
-
-### Bonus: Example Python Snippet for Dashboard Visuals Using Seaborn
-
-```python
-import seaborn as sns
-import matplotlib.pyplot as plt
-import pandas as pd
-
-# Assume df_kpis is a Pandas DataFrame loaded from the API or Gold table export
-def plot_approval_rate_trends(df_kpis):
-    sns.set(style="whitegrid")
-    plt.figure(figsize=(12,6))
-    sns.lineplot(data=df_kpis, x="application_date", y="approval_rate", marker="o")
-    plt.title("Loan Approval Rate Trends Over Time")
-    plt.xlabel("Application Date")
-    plt.ylabel("Approval Rate (%)")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
-```
-
----
-
-If you'd like, I can format this as a full Markdown file ready for your GitHub repo or help build the dashboard Python scripts next!
