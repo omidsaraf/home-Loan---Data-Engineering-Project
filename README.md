@@ -82,7 +82,7 @@ The **HomeLoanIQ** platform empowers banks and mortgage providers to:
 ## 📁 Repository Structure
 
 ```plaintext
-src/
+
 ├── Ingestion/
 │   ├── adf_templates/               # Azure Data Factory JSON templates
 │   ├── pyspark_streaming/           # Kafka streaming ingestion code
