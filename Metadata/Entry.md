@@ -10,6 +10,12 @@ Here we log metadata for **ADF pipeline executions** related to batch processing
 | 1                | Loan\_Application\_ETL | CRM                | Daily         | 2023-08-01 00:00:00 | 2023-08-01 00:30:00 | Completed  | Success               | {"start\_date": "2023-08-01", "end\_date": "2023-08-01"} | 2023-08-01 00:00:00 | 2023-08-01 00:30:00 |
 | 2                | Loan\_Approval\_Batch  | Core Banking       | Weekly        | 2023-08-01 01:00:00 | 2023-08-01 01:45:00 | Completed  | Success               | {"batch\_size": "500", "process\_type": "Incremental"}   | 2023-08-01 01:00:00 | 2023-08-01 01:45:00 |
 
+
+| **job\_id** | **job\_name**                  | **job\_type** | **status** | **start\_time**     | **end\_time**       | **duration** | **error\_message** | **streaming\_source** | **micro\_batch\_id** |
+| ----------- | ------------------------------ | ------------- | ---------- | ------------------- | ------------------- | ------------ | ------------------ | --------------------- | -------------------- |
+| 1           | Loan\_Application\_Stream\_Job | Streaming     | Completed  | 2023-08-01 00:00:00 | 2023-08-01 01:00:00 | 1 hour       | NULL               | Kafka                 | batch\_12345         |
+| 2           | Loan\_Approval\_Batch\_Job     | Batch         | Completed  | 2023-08-01 00:00:00 | 2023-08-01 00:45:00 | 45 minutes   | NULL               | NULL                  | NULL                 |
+
 ---
 
 ### **2. Airflow\_Metadata Table (For Batch Processing)**
