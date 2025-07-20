@@ -237,4 +237,3 @@ This approach follows best practices for **RLS**, **CLS**, **DDM**, and **metada
 
 Each **view** and **table** is designed to ensure data governance while also providing flexibility for different roles in your organization.
 
-Let me know if you need further assistance with implementing this!
